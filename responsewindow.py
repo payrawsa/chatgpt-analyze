@@ -1,7 +1,6 @@
 import pyautogui
 import keyboard
 import customtkinter
-from ai import capture_and_process_screenshot
 from constants import (  # Import constants
     SetWindowDisplayAffinity,
     user32,
@@ -21,6 +20,7 @@ customtkinter.set_default_color_theme("blue")  # Themes: "blue" (standard), "gre
 class ResponseWindow(customtkinter.CTk):
     def __init__(self):
         super().__init__()
+        self.gen_ai = None
 
         # configure window
         self.title("ChatGPT Response") 
@@ -121,13 +121,14 @@ class ResponseWindow(customtkinter.CTk):
                 # Try again after 100 milliseconds
                 self.after(100, self.get_window_handle)
             else:
-                print("Window handle not found after maximum retries.")
+                self.update_text("Something happened. Please restart the application!")
 
     def make_click_through(self):
         hwnd = user32.FindWindowW(None, "ChatGPT Response")
         if hwnd:
             # Set layered and transparent styles along with no activate
-            self.toggle_transparent()
+            self.transparent = True
+            self.attributes('-alpha', 0.6)  # Set transparency (1.0 is fully opaque, 0.0 is fully transparent)            
             styles = user32.GetWindowLongW(hwnd, GWL_EXSTYLE)
             new_styles = styles | WS_EX_LAYERED | WS_EX_TRANSPARENT | WS_EX_NOACTIVATE
             user32.SetWindowLongW(hwnd, GWL_EXSTYLE, new_styles)
@@ -136,6 +137,8 @@ class ResponseWindow(customtkinter.CTk):
         hwnd = user32.FindWindowW(None, "ChatGPT Response")
         if hwnd:
             # Remove the WS_EX_LAYERED, WS_EX_TRANSPARENT, and WS_EX_NOACTIVATE styles
+            self.transparent = False
+            self.attributes('-alpha', 1.0)  # Set transparency (1.0 is fully opaque, 0.0 is fully transparent)
             styles = user32.GetWindowLongW(hwnd, GWL_EXSTYLE)
             new_styles = styles & ~WS_EX_TRANSPARENT
             user32.SetWindowLongW(hwnd, GWL_EXSTYLE, new_styles)
@@ -168,6 +171,10 @@ class ResponseWindow(customtkinter.CTk):
         self.mainloop()
 
     def customEntry(self):
+        if self.gen_ai.is_running:
+            self.update_text("Please wait for your previous request to finish before making new ones!")
+            return
+        self.update_text("Loading response. This will only take a moment!")
         entry = self.entry.get()
-        response = capture_and_process_screenshot(entry)
+        response = self.gen_ai.capture_and_process_screenshot(entry)
         self.update_text(response)

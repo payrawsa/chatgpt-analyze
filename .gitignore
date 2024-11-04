@@ -1,1 +1,5 @@
 config.py
+main.spec
+build/*
+dist/*
+__pycache__/*

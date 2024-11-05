@@ -27,7 +27,7 @@ class ScreenshotProcessor:
             # Send the extracted text to the OpenAI API
             def ask_chatgpt(question, content):
                 response = client.chat.completions.create(
-                    model="gpt-4",
+                    model="gpt-4o",
                     messages=[
                         {"role": "system", "content": content},
                         {"role": "user", "content": question}

@@ -12,6 +12,9 @@ from constants import (  # Import constants
     STATIC_WIDTH,
     STATIC_HEIGHT,
     HOTKEYS,
+    code_question,
+    SYSTEM_DESIGN,
+    SOLVE_AI
 )
 
 customtkinter.set_appearance_mode("System")  # Modes: "System" (standard), "Dark", "Light"
@@ -31,6 +34,8 @@ class ResponseWindow(customtkinter.CTk):
         self.wm_geometry(f"{STATIC_WIDTH}x{STATIC_HEIGHT}+{x_position}+{y_position}")
         self.clickable = False
         self.transparent = False
+        self.language_mode = "Python"
+        self.solution_mode =  code_question(self.language_mode)
 
         # configure grid layout (3x4)
         self.grid_columnconfigure(1, weight=1)
@@ -40,25 +45,38 @@ class ResponseWindow(customtkinter.CTk):
         # create sidebar frame with widgets
         self.sidebar_frame = customtkinter.CTkFrame(self, width=140, corner_radius=0)
         self.sidebar_frame.grid(row=0, column=0, rowspan=4, sticky="nsew")
-        self.sidebar_frame.grid_rowconfigure(4, weight=1)
+        self.sidebar_frame.grid_rowconfigure(7, weight=1)
+        
+        
         self.sidebar_button_1 = customtkinter.CTkButton(self.sidebar_frame, command=self.toggle_transparent, text="Toggle Transparent")
         self.sidebar_button_1.grid(row=0, column=0, padx=20, pady=20)
         
-        self.hotkeys = customtkinter.CTkLabel(self.sidebar_frame, text="Hotkeys", font=customtkinter.CTkFont(size=20, weight="bold"), justify="left")
-        self.hotkeys.grid(row=1, column=0, padx=(20,20), pady=(20, 20))
+        
+        self.solution_mode_label = customtkinter.CTkLabel(self.sidebar_frame, text="Solution Mode:", anchor="w")
+        self.solution_mode_label.grid(row=1, column=0, padx=20, pady=(10, 0))
+        self.solution_mode_optionmenu = customtkinter.CTkOptionMenu(self.sidebar_frame, values=["Code", "Design", "General Solve"], command=self.change_solution_mode_event)
+        self.solution_mode_optionmenu.grid(row=2, column=0, padx=20, pady=(10, 10))
+        
+        
+        self.language_mode_label = customtkinter.CTkLabel(self.sidebar_frame, text="Coding Language:", anchor="w")
+        self.language_mode_label.grid(row=3, column=0, padx=20, pady=(10, 0))
+        self.language_mode_optionmenu = customtkinter.CTkOptionMenu(self.sidebar_frame, values=["Python", "Javascript", "Java"], command=self.change_language_mode_event)
+        self.language_mode_optionmenu.grid(row=4, column=0, padx=20, pady=(10, 10))
+
+        
         self.key_1 = customtkinter.CTkLabel(self.sidebar_frame, text=HOTKEYS, justify="left", font=customtkinter.CTkFont(size=12, weight="bold"))
-        self.key_1.grid(row=2, column=0, padx=(20,20))
+        self.key_1.grid(row=6, column=0, padx=(20,20))
 
         self.appearance_mode_label = customtkinter.CTkLabel(self.sidebar_frame, text="Appearance Mode:", anchor="w")
-        self.appearance_mode_label.grid(row=5, column=0, padx=20, pady=(10, 0))
+        self.appearance_mode_label.grid(row=8, column=0, padx=20, pady=(10, 0))
         self.appearance_mode_optionemenu = customtkinter.CTkOptionMenu(self.sidebar_frame, values=["Light", "Dark", "System"],
                                                                        command=self.change_appearance_mode_event)
-        self.appearance_mode_optionemenu.grid(row=6, column=0, padx=20, pady=(10, 10))
+        self.appearance_mode_optionemenu.grid(row=9, column=0, padx=20, pady=(10, 10))
         self.scaling_label = customtkinter.CTkLabel(self.sidebar_frame, text="UI Scaling:", anchor="w")
-        self.scaling_label.grid(row=7, column=0, padx=20, pady=(10, 0))
+        self.scaling_label.grid(row=10, column=0, padx=20, pady=(10, 0))
         self.scaling_optionemenu = customtkinter.CTkOptionMenu(self.sidebar_frame, values=["80%", "90%", "100%", "110%", "120%"],
                                                                command=self.change_scaling_event)
-        self.scaling_optionemenu.grid(row=8, column=0, padx=20, pady=(10, 20))
+        self.scaling_optionemenu.grid(row=11, column=0, padx=20, pady=(10, 20))
 
         # create main entry and button
         self.entry = customtkinter.CTkEntry(self, placeholder_text="Custom Prompt")
@@ -87,6 +105,19 @@ class ResponseWindow(customtkinter.CTk):
 
     def change_appearance_mode_event(self, new_appearance_mode: str):
         customtkinter.set_appearance_mode(new_appearance_mode)
+
+    def change_solution_mode_event(self, solution_mode: str):
+        if solution_mode == "Code":
+            self.solution_mode = code_question(self.language_mode)
+        elif solution_mode == "Design":
+            self.solution_mode = SYSTEM_DESIGN
+        else:
+            self.solution_mode = SOLVE_AI
+
+    def change_language_mode_event(self, language_mode: str):
+        self.language_mode = language_mode
+        if self.solution_mode_optionmenu.get() == "Code":
+            self.solution_mode = code_question(self.language_mode)
 
     def change_scaling_event(self, new_scaling: str):
         new_scaling_float = int(new_scaling.replace("%", "")) / 100

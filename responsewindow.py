@@ -21,9 +21,9 @@ customtkinter.set_appearance_mode("System")  # Modes: "System" (standard), "Dark
 customtkinter.set_default_color_theme("blue")  # Themes: "blue" (standard), "green", "dark-blue"
 
 class ResponseWindow(customtkinter.CTk):
-    def __init__(self):
+    def __init__(self, gen_ai):
         super().__init__()
-        self.gen_ai = None
+        self.gen_ai = gen_ai
 
         # configure window
         self.title("ChatGPT Response") 

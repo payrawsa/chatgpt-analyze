@@ -22,13 +22,15 @@ code_question = lambda lang : f"Answer the coding question in {lang}. Using bull
 SYSTEM_DESIGN = "Answer the system design question. Begin by defining if sql or nosql and define the schema if sql or document if nosql. Use existing technologies whenever possible instead of generalities. Try to explain why you use one technology over another. Make sure to follow the requirements, if any. Then draw a system design diagram."
 SOLVE_AI = "Answer the problem. Begin by defining the problem in a short sentence. Then explain your approach in 1-4 bullet points. Then the solution. Add a diagram if useful. Then a small summary at the end. Avoid generalities and try to be specific with the solution."
 HOTKEYS = """
-Hide: alt+ctrl+h
+Hide: ctrl+alt+h
 
-Clickable: alt+ctrl+c
+Clickable: ctrl+alt+c
 
-Solve: alt+ctrl+s
+Solve: ctrl+alt+s
 
 Move to Mouse: ctrl+shift
+
+Toggle Record: ctrl+alt+r
 """
 # Static window dimensions
 STATIC_HEIGHT = int(pyautogui.size().height*0.8)

@@ -32,7 +32,7 @@ class ResponseWindow(customtkinter.CTk):
         x_position = (screen_width - STATIC_WIDTH) // 2  # Center horizontally
         y_position = (screen_height - STATIC_HEIGHT) // 2  # Center vertically
         self.wm_geometry(f"{STATIC_WIDTH}x{STATIC_HEIGHT}+{x_position}+{y_position}")
-        self.clickable = False
+        self.clickable = True
         self.transparent = False
         self.language_mode = "Python"
         self.solution_mode =  code_question(self.language_mode)
@@ -145,7 +145,7 @@ class ResponseWindow(customtkinter.CTk):
         if hwnd:
             # Set the display affinity
             SetWindowDisplayAffinity(hwnd, WDA_EXCLUDEFROMCAPTURE)
-            self.make_click_through()
+            self.make_clickable()
         else:
             self.current_retry += 1
             if self.current_retry < self.max_retries:
@@ -171,7 +171,7 @@ class ResponseWindow(customtkinter.CTk):
             self.transparent = False
             self.attributes('-alpha', 1.0)  # Set transparency (1.0 is fully opaque, 0.0 is fully transparent)
             styles = user32.GetWindowLongW(hwnd, GWL_EXSTYLE)
-            new_styles = styles & ~WS_EX_TRANSPARENT
+            new_styles = styles & ~WS_EX_TRANSPARENT | WS_EX_NOACTIVATE
             user32.SetWindowLongW(hwnd, GWL_EXSTYLE, new_styles)
 
     def update_position(self):

@@ -1,10 +1,9 @@
 import sounddevice as sd
 import wave
-import assemblyai as aai
-from config import ASSEMBLYAI_API_KEY  # Import API key from config.py
 
+from utils.api_client import APIClient
 class Recording:
-    def __init__(self, gen_ai, filename="output.wav", sample_rate=44100, channels=1):
+    def __init__(self, api_client: APIClient, filename="output/output.wav", sample_rate=44100, channels=1):
         """
         Initializes the Recording object with audio parameters.
 
@@ -13,17 +12,13 @@ class Recording:
             sample_rate (int): Audio sample rate (default is 44100 Hz).
             channels (int): Number of audio channels (default is 1 for mono).
         """
-        aai.settings.api_key = ASSEMBLYAI_API_KEY
-        self.gen_ai = gen_ai
-        self.transcriber = aai.Transcriber()
+        self.api_client = api_client
         self.filename = filename
         self.sample_rate = sample_rate
         self.channels = channels
         self.is_recording = False
         self.frames = []
         self.stream = None
-
-
 
     def start_recording(self):
         """Starts the recording process."""
@@ -62,16 +57,8 @@ class Recording:
                 wf.setframerate(self.sample_rate)
                 wf.writeframes(b"".join(self.frames))
             print(f"Audio saved as {self.filename}")
-            return self.transcribe(self.filename)
+            return self.api_client.transcribe_audio(self.filename)
 
         except Exception as e:
             print(f"Error saving audio: {e}")
             return "Error saving or transcribing the audio!"
-
-    def transcribe(self,audio_file):
-        transcript = self.transcriber.transcribe(audio_file)
-        if transcript.status == aai.TranscriptStatus.error:
-            print(f"Transcription failed: {transcript.error}")
-            exit(1)
-
-        return self.gen_ai.ask_chatgpt(transcript.text, "Break down the user content into numerical steps like in a list.")

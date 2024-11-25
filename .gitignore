@@ -2,6 +2,5 @@ config.py
 main.spec
 build/*
 dist/*
-__pycache__/*
-screenshot.png
-output.wav
+**/__pycache__/*
+output/*

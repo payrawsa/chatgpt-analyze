@@ -1,7 +1,7 @@
 import pyautogui
 import keyboard
 import customtkinter
-from constants import (  # Import constants
+from constants.constants import (  # Import constants
     SetWindowDisplayAffinity,
     user32,
     WDA_EXCLUDEFROMCAPTURE,
@@ -16,15 +16,15 @@ from constants import (  # Import constants
     SYSTEM_DESIGN,
     SOLVE_AI
 )
+from utils.image_processor import ImageProcessor
 
 customtkinter.set_appearance_mode("System")  # Modes: "System" (standard), "Dark", "Light"
 customtkinter.set_default_color_theme("blue")  # Themes: "blue" (standard), "green", "dark-blue"
 
 class ResponseWindow(customtkinter.CTk):
-    def __init__(self, gen_ai):
+    def __init__(self, image_processor: ImageProcessor):
         super().__init__()
-        self.gen_ai = gen_ai
-
+        self.image_processor = image_processor
         # configure window
         self.title("ChatGPT Response") 
         self.attributes('-topmost', True)  # Keep the window always on top        
@@ -202,10 +202,10 @@ class ResponseWindow(customtkinter.CTk):
         self.mainloop()
 
     def customEntry(self):
-        if self.gen_ai.is_running:
+        if self.image_processor.is_running:
             self.update_text("Please wait for your previous request to finish before making new ones!")
             return
         self.update_text("Loading response. This will only take a moment!")
         entry = self.entry.get()
-        response = self.gen_ai.capture_and_process_screenshot(entry)
+        response = self.image_processor.capture_and_process_screenshot(entry)
         self.update_text(response)

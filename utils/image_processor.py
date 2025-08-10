@@ -8,26 +8,32 @@ class ImageProcessor:
         self.is_running = False
         self.api_client = api_client
 
-    def capture_and_process_screenshot(self, system: str):
+    def capture_and_process_screenshot(self, prompt: str, text: str, screenshot_mode: bool = False):
         if self.is_running:
             return "Please wait for the previous request to finish."
 
         self.is_running = True
         try:
-            # Capture screenshot
-            screenshot = pyautogui.screenshot()
-            screenshot.save("output/screenshot.png")
+            if screenshot_mode:
+                # Capture screenshot
+                screenshot = pyautogui.screenshot()
+                screenshot.save("output/screenshot.png")
+                # Capture screenshot
+                screenshot = pyautogui.screenshot()
+                screenshot.save("output/screenshot.png")
 
-            # Extract text from the screenshot using OCR
-            img = Image.open("output/screenshot.png")
-            user = pytesseract.image_to_string(img)
+                # Extract text from the screenshot using OCR
+                img = Image.open("output/screenshot.png")
+                screenshot_text = pytesseract.image_to_string(img)
 
-            # Get the response
-            if user:  # Only proceed if there's text to analyze
-                data = self.api_client.ask_chatgpt(system, user)
-                return data.get("response")
-            else:
+                # Get the response
+                if screenshot_text:  # Only proceed if there's text to analyze
+                    data = self.api_client.ask_chatgpt(prompt, screenshot_text)
+                    return data.get("response")
                 return "Nothing solvable was detected!"
+            data = self.api_client.ask_chatgpt(prompt, text)
+            return data.get("response")
+        
 
         finally:
             self.is_running = False  # Reset the flag when done

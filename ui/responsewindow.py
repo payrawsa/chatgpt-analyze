@@ -22,9 +22,10 @@ customtkinter.set_appearance_mode("System")  # Modes: "System" (standard), "Dark
 customtkinter.set_default_color_theme("blue")  # Themes: "blue" (standard), "green", "dark-blue"
 
 class ResponseWindow(customtkinter.CTk):
-    def __init__(self, image_processor: ImageProcessor):
+    def __init__(self, image_processor: ImageProcessor, api_client=None):
         super().__init__()
         self.image_processor = image_processor
+        self.api_client = api_client
         # configure window
         self.title("ChatGPT Response") 
         self.attributes('-topmost', True)  # Keep the window always on top        
@@ -36,6 +37,7 @@ class ResponseWindow(customtkinter.CTk):
         self.transparent = False
         self.language_mode = "Python"
         self.solution_mode =  code_question(self.language_mode)
+        self.is_pdf_mode = False
 
         # configure grid layout (3x4)
         self.grid_columnconfigure(1, weight=1)
@@ -52,16 +54,19 @@ class ResponseWindow(customtkinter.CTk):
         self.sidebar_button_1.grid(row=0, column=0, padx=20, pady=20)
         
         
+        self.screenshot_mode = customtkinter.CTkCheckBox(self.sidebar_frame, text="Screenshot Mode")
+        self.screenshot_mode.grid(row=1, column=0, padx=20, pady=(10, 10))
+
         self.solution_mode_label = customtkinter.CTkLabel(self.sidebar_frame, text="Solution Mode:", anchor="w")
-        self.solution_mode_label.grid(row=1, column=0, padx=20, pady=(10, 0))
-        self.solution_mode_optionmenu = customtkinter.CTkOptionMenu(self.sidebar_frame, values=["Code", "Design", "General Solve"], command=self.change_solution_mode_event)
-        self.solution_mode_optionmenu.grid(row=2, column=0, padx=20, pady=(10, 10))
+        self.solution_mode_label.grid(row=2, column=0, padx=20, pady=(10, 0))
+        self.solution_mode_optionmenu = customtkinter.CTkOptionMenu(self.sidebar_frame, values=["Code", "Design", "General Solve", "PDF Extractor"], command=self.change_solution_mode_event)
+        self.solution_mode_optionmenu.grid(row=3, column=0, padx=20, pady=(10, 10))
         
         
         self.language_mode_label = customtkinter.CTkLabel(self.sidebar_frame, text="Coding Language:", anchor="w")
-        self.language_mode_label.grid(row=3, column=0, padx=20, pady=(10, 0))
+        self.language_mode_label.grid(row=4, column=0, padx=20, pady=(10, 0))
         self.language_mode_optionmenu = customtkinter.CTkOptionMenu(self.sidebar_frame, values=["Python", "Javascript", "Java"], command=self.change_language_mode_event)
-        self.language_mode_optionmenu.grid(row=4, column=0, padx=20, pady=(10, 10))
+        self.language_mode_optionmenu.grid(row=5, column=0, padx=20, pady=(10, 10))
 
         
         self.key_1 = customtkinter.CTkLabel(self.sidebar_frame, text=HOTKEYS, justify="left", font=customtkinter.CTkFont(size=12, weight="bold"))
@@ -79,11 +84,15 @@ class ResponseWindow(customtkinter.CTk):
         self.scaling_optionemenu.grid(row=11, column=0, padx=20, pady=(10, 20))
 
         # create main entry and button
-        self.entry = customtkinter.CTkEntry(self, placeholder_text="Custom Prompt")
-        self.entry.grid(row=3, column=1, columnspan=2, padx=(20, 0), pady=(20, 20), sticky="nsew")
+        self.entry = customtkinter.CTkEntry(self, placeholder_text="Enter prompt")
+        self.entry.grid(row=3, column=1, columnspan=2, padx=(20, 0), pady=(10, 10), sticky="nsew")
+
+        # create text analysis entry box
+        self.text_entry = customtkinter.CTkEntry(self, placeholder_text="Enter text to analyze")
+        self.text_entry.grid(row=4, column=1, columnspan=2, padx=(20, 0), pady=(10, 20), sticky="nsew")
 
         self.main_button_1 = customtkinter.CTkButton(master=self, fg_color="transparent", border_width=2, text_color=("gray10", "#DCE4EE"), text="Send", command=self.customEntry)
-        self.main_button_1.grid(row=3, column=3, padx=(20, 20), pady=(20, 20), sticky="nsew")
+        self.main_button_1.grid(row=4, column=3, padx=(20, 20), pady=(10, 20), sticky="nsew")
 
         # create textbox
         self.textbox = customtkinter.CTkTextbox(self, width=STATIC_WIDTH, height=STATIC_HEIGHT)
@@ -93,6 +102,9 @@ class ResponseWindow(customtkinter.CTk):
         self.appearance_mode_optionemenu.set("Dark")
         self.scaling_optionemenu.set("100%")
         self.textbox.insert("0.0", "Your answer will show here!")
+
+        # Initialize UI based on current mode
+        self.update_ui_for_mode()
 
         # Set up a timer to update the window position constantly
         self.update_position()
@@ -109,10 +121,36 @@ class ResponseWindow(customtkinter.CTk):
     def change_solution_mode_event(self, solution_mode: str):
         if solution_mode == "Code":
             self.solution_mode = code_question(self.language_mode)
+            self.is_pdf_mode = False
         elif solution_mode == "Design":
             self.solution_mode = SYSTEM_DESIGN
+            self.is_pdf_mode = False
+        elif solution_mode == "PDF Extractor":
+            self.is_pdf_mode = True
         else:
             self.solution_mode = SOLVE_AI
+            self.is_pdf_mode = False
+        
+        self.update_ui_for_mode()
+        
+    def update_ui_for_mode(self):
+        """Update UI elements based on current mode"""
+        if self.is_pdf_mode:
+            # Hide text entry and screenshot checkbox for PDF mode
+            self.text_entry.grid_remove()
+            self.screenshot_mode.grid_remove()
+            
+            # Change entry placeholder text and button text
+            self.entry.configure(placeholder_text="Path to PDF")
+            self.main_button_1.configure(text="Process PDF")
+        else:
+            # Show text entry and screenshot checkbox for other modes
+            self.text_entry.grid()
+            self.screenshot_mode.grid()
+            
+            # Restore original placeholder text and button text
+            self.entry.configure(placeholder_text="Enter prompt")
+            self.main_button_1.configure(text="Send")
 
     def change_language_mode_event(self, language_mode: str):
         self.language_mode = language_mode
@@ -205,7 +243,45 @@ class ResponseWindow(customtkinter.CTk):
         if self.image_processor.is_running:
             self.update_text("Please wait for your previous request to finish before making new ones!")
             return
-        self.update_text("Loading response. This will only take a moment!")
-        entry = self.entry.get()
-        response = self.image_processor.capture_and_process_screenshot(entry)
-        self.update_text(response)
+        
+        if self.is_pdf_mode:
+            self.process_pdf_study_guide()
+        else:
+            self.update_text("Loading response. This will only take a moment!")
+            prompt = self.entry.get()
+            text = self.text_entry.get()
+            screenshot_enabled = bool(self.screenshot_mode.get())
+            response = self.image_processor.capture_and_process_screenshot(prompt, text, screenshot_enabled)
+            self.update_text(response)
+    
+    def process_pdf_study_guide(self):
+        """Process PDF file to create study guide - called from UI"""
+        import os
+        from utils.pdf_text_extract import PDFTextExtractor
+        
+        pdf_path = self.entry.get()
+        if not pdf_path:
+            self.update_text("Please enter a PDF file path!")
+            return
+        
+        if not self.api_client:
+            self.update_text("API client not available. Please restart the application.")
+            return
+        
+        self.update_text("Creating study guide from PDF... Please wait...")
+        try:
+            # Import the create_study_guide function
+            from main import create_study_guide
+            study_guide = create_study_guide(pdf_path, self.api_client, 215)
+            
+            # Create output filename based on input PDF name
+            output_filename = os.path.splitext(os.path.basename(pdf_path))[0] + "_study_guide.txt"
+            output_path = os.path.join("output", output_filename)
+            
+            # Save study guide to file
+            with open(output_path, "w", encoding="utf-8") as f:
+                f.write(study_guide)
+            
+            self.update_text(f"Study guide created successfully! Saved to: {output_path}")
+        except Exception as e:
+            self.update_text(f"Error processing PDF: {str(e)}")

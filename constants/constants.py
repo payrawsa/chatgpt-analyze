@@ -16,7 +16,7 @@ WDA_EXCLUDEFROMCAPTURE = 0x00000011
 GWL_EXSTYLE = -20
 WS_EX_LAYERED = 0x80000
 WS_EX_TRANSPARENT = 0x20
-WS_EX_NOACTIVATE = 0x8000000  # Allows the window to be click-through
+WS_EX_NOACTIVATE = 0x8000000  # Removes window icon
 
 code_question = lambda lang : f"Answer the coding question in {lang}. Using bullet points, shortly explain the intuition of the best solution and then show the code with a return value without comments."
 SYSTEM_DESIGN = "Answer the system design question. Begin by defining if sql or nosql and define the schema if sql or document if nosql. Use existing technologies whenever possible instead of generalities. Try to explain why you use one technology over another. Make sure to follow the requirements, if any. Then draw a system design diagram."
